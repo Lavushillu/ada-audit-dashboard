@@ -1,0 +1,55 @@
+{% set jira_base = settings.jira_url %}
+{% set priority_color = {
+  "P1": "#dc2626", "P2": "#d97706", "P3": "#2563eb", "P4": "#6b7280",
+  "Critical": "#dc2626", "High": "#d97706", "Medium": "#2563eb", "Low": "#6b7280"
+} %}
+{% set status_chip = {
+  "Done": "chip-done", "Fixed": "chip-done", "Closed": "chip-done",
+  "Ready for Review": "chip-rfr", "In Review": "chip-rfr",
+  "Work in Progress": "chip-wip", "In Progress": "chip-wip", "Open": "chip-wip",
+  "Backlog": "chip-backlog"
+} %}
+
+{% if bugs %}
+<table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+  <thead>
+    <tr style="background:#fef3c7;">
+      <th style="padding:.4rem .7rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#92400e;font-weight:700;border-bottom:1px solid #fde68a">Bug Key</th>
+      <th style="padding:.4rem .7rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#92400e;font-weight:700;border-bottom:1px solid #fde68a">Summary</th>
+      <th style="padding:.4rem .7rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#92400e;font-weight:700;border-bottom:1px solid #fde68a">Status</th>
+      <th style="padding:.4rem .7rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#92400e;font-weight:700;border-bottom:1px solid #fde68a">Priority</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for bug in bugs %}
+    <tr style="border-bottom:1px solid #fef9c3;">
+      <td style="padding:.4rem .7rem;">
+        <a href="{{ jira_base }}/browse/{{ bug.key }}" target="_blank"
+          style="font-family:monospace;font-size:.75rem;font-weight:700;color:#d97706;text-decoration:none"
+          onmouseover="this.style.textDecoration='underline'"
+          onmouseout="this.style.textDecoration='none'">
+          {{ bug.key }}
+        </a>
+      </td>
+      <td style="padding:.4rem .7rem;max-width:420px;color:#374151">
+        <span title="{{ bug.summary }}">{{ bug.summary | truncate(90) }}</span>
+      </td>
+      <td style="padding:.4rem .7rem;">
+        <span class="chip {{ status_chip.get(bug.status, 'chip-backlog') }}">{{ bug.status or '—' }}</span>
+      </td>
+      <td style="padding:.4rem .7rem;">
+        {% if bug.priority %}
+        <span style="font-size:.72rem;font-weight:700;color:{{ priority_color.get(bug.priority, '#6b7280') }}">
+          {{ bug.priority }}
+        </span>
+        {% else %}
+        <span style="color:#9ca3af">—</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="padding:.6rem 1rem;font-size:.8rem;color:#6b7280;font-style:italic">No bugs linked to this initiative.</p>
+{% endif %}

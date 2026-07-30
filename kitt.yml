@@ -1,0 +1,40 @@
+profiles:
+  - basic-docker-build   # KITT manages Docker build using the Dockerfile
+  - default-lab          # Deploy to default lab cluster
+
+owner:
+  group: <YOUR-AD-SECURITY-GROUP>   # e.g. ce-access-dev — request via ServiceNow
+
+notify:
+  slack:
+    channelName: <YOUR-PUBLIC-SLACK-CHANNEL>   # e.g. ceaccess-alerts (must be public)
+
+deploy:
+  namespace: ceaccess
+
+  helm:
+    values:
+      replicas: 1
+      min:
+        cpu: 100m
+        memory: 256Mi
+      max:
+        cpu: 500m
+        memory: 512Mi
+
+      # Jira credentials — set these as WCNP secrets (never commit real values)
+      env:
+        JIRA_URL: "https://jira.walmart.com"
+        JIRA_USERNAME: <YOUR-ASSOCIATE-ID>     # e.g. l0p0c77
+      secretEnv:
+        JIRA_PASSWORD: <YOUR-VAULT-SECRET-PATH>  # e.g. secret/ceaccess/jira-pat
+
+      livenessProbe:
+        path: "/health"
+        initialDelaySeconds: 15
+        periodSeconds: 30
+
+      readinessProbe:
+        path: "/ready"
+        initialDelaySeconds: 10
+        periodSeconds: 20

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADA Initiatives</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+    // Preserve scroll position across all HTMX swaps (sort, filter, pagination)
+    (function () {
+      var _y = 0;
+      document.addEventListener('htmx:beforeRequest', function () { _y = window.scrollY; });
+      document.addEventListener('htmx:afterSettle',   function () { window.scrollTo(0, _y); });
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: "Helvetica Neue", Arial, sans-serif; background: #f5f5f5; }
+    .chip { display:inline-block; border-radius:9999px; padding:.15rem .65rem; font-size:.72rem; font-weight:700; }
+    .chip-done        { background:#dcfce7; color:#166534; }
+    .chip-rfr         { background:#dbeafe; color:#1e3a8a; }
+    .chip-wip         { background:#fef9c3; color:#92400e; }
+    .chip-backlog     { background:#f3f4f6; color:#4b5563; }
+    .chip-platform    { background:#e0e7ff; color:#3730a3; }
+    .wmt-btn          { background:#0053e2; color:#fff; border-radius:9999px; padding:.45rem 1.2rem; font-weight:600; font-size:.875rem; border:none; cursor:pointer; }
+    .wmt-btn:hover    { background:#0041b5; }
+    .wmt-btn-sm       { padding:.3rem .9rem; font-size:.8rem; }
+    .wmt-btn-gray     { background:#6b7280; }
+    .wmt-btn-gray:hover { background:#4b5563; }
+    select, input[type=text], input[type=url] {
+      border:1px solid #c7c7c7; border-radius:.5rem; padding:.4rem .75rem; font-size:.875rem; outline:none; background:white;
+    }
+    select:focus, input:focus { border-color:#0053e2; box-shadow:0 0 0 2px rgba(0,83,226,.2); }
+    .modal-bg { position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;display:flex;align-items:center;justify-content:center; }
+    table { border-collapse:collapse; width:100%; }
+    thead th { background:#0053e2; color:#fff; padding:.6rem .75rem; text-align:left; font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; position:sticky; top:0; z-index:2; }
+    tbody tr:nth-child(even) { background:#fafafa; }
+    tbody tr:hover { background:#eff6ff; }
+    tbody td { padding:.55rem .75rem; font-size:.82rem; border-bottom:1px solid #e5e7eb; vertical-align:middle; }
+    .htmx-indicator { opacity:0; transition:opacity .2s; }
+    .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity:1; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .progress-bar { height:12px; background:#ffc220; border-radius:6px; transition: width .6s ease; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- HEADER -->
+<header class="px-6 py-3 flex items-center gap-3 shadow-lg" style="background:#0053e2">
+  <svg width="30" height="26" viewBox="0 0 32 28" fill="none">
+    <path d="M16 0l2.9 9H28l-7.3 5.3 2.8 8.7L16 18l-7.5 5 2.8-8.7L4 9h9.1z" fill="#FFC220"/>
+  </svg>
+  <div>
+    <h1 class="text-xl font-bold text-white leading-tight">ADA Initiatives</h1>
+    <p class="text-xs text-white/70">CEACCESS · Live from Jira · A11y testers</p>
+  </div>
+  <div class="ml-auto flex items-center gap-3">
+    <span class="htmx-indicator text-white/80 text-sm">Fetching...</span>
+    {% if current_user.displayName %}
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(255,255,255,0.15)">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      </svg>
+      <span class="text-sm font-semibold text-white">{{ current_user.displayName }}</span>
+    </div>
+    {% endif %}
+    <button
+      hx-get="/api/issues?force=true"
+      hx-target="#dashboard-body"
+      hx-indicator=".htmx-indicator"
+      class="wmt-btn wmt-btn-sm"
+      title="Force refresh from Jira">
+      Refresh
+    </button>
+    <button onclick="document.getElementById('settingsModal').classList.remove('hidden')"
+      title="Settings"
+      class="wmt-btn wmt-btn-sm"
+      style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.4); padding:.3rem .5rem">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" class="modal-bg hidden" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+    <h2 class="text-lg font-bold mb-1" style="color:#0053e2">Dashboard Settings</h2>
+    <p class="text-xs text-gray-600 mb-4">Configure testers and filters. Saves and reloads automatically.</p>
+    <form method="POST" action="/api/settings">
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Testers (comma-separated usernames)</label>
+      <input type="text" name="testers_raw" value="{{ settings.testers | join(', ') }}" class="w-full mb-3" placeholder="e.g. l0p0c77, s0s116y, h0n01o6, k0n042f" required />
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Keyword Filter (summary ~)</label>
+      <input type="text" name="keyword" value="{{ settings.keyword }}" class="w-full mb-3" placeholder="e.g. ADA Audit" required />
+      <label class="block text-sm font-semibold mb-1 text-gray-700">Jira Base URL</label>
+      <input type="url" name="jira_url" value="{{ settings.jira_url }}" class="w-full mb-5" placeholder="https://jira.walmart.com" required />
+      <div class="flex gap-2 justify-end">
+        <button type="button" onclick="document.getElementById('settingsModal').classList.add('hidden')"
+          class="wmt-btn wmt-btn-gray">Cancel</button>
+        <button type="submit" class="wmt-btn">Save & Reload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MAIN CONTENT (loaded via HTMX on page load) -->
+<main class="max-w-screen-xl mx-auto px-4 py-6">
+  <div id="dashboard-body"
+    hx-get="/api/issues"
+    hx-trigger="load"
+    hx-indicator=".htmx-indicator">
+    <div class="flex items-center justify-center h-64">
+      <div class="text-center">
+        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+        <p class="text-gray-700 font-medium">Fetching live data from Jira...</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
