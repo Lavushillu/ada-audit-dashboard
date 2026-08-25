@@ -39,7 +39,7 @@
     <p class="text-xs" style="color:rgba(255,255,255,0.7)">CEACCESS · Snapshot · A11y testers</p>
   </div>
   <div class="ml-auto flex items-center gap-3">
-    <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(255,255,255,0.15);color:#fff">📸 Aug 25, 2026 06:53 PM</span>
+    <span class="text-xs font-semibold px-3 py-1 rounded-full" style="background:rgba(255,255,255,0.15);color:#fff">📸 Aug 25, 2026 06:55 PM</span>
   </div>
 </header>
 
@@ -155,8 +155,8 @@
   <div class="flex items-center gap-2">
     <span class="text-sm text-gray-700">Rows per page</span>
     <select onchange="pageSize=+this.value;currentPage=1;render()" class="border border-gray-200 rounded px-2 py-1 text-sm" style="width:auto">
-      <option value="10">10</option>
-      <option value="20" selected>20</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
       <option value="50">50</option>
       <option value="100">100</option>
     </select>
@@ -164,7 +164,7 @@
 </div>
 
 <footer class="text-center text-xs text-gray-500 pb-4">
-  ADA Initiatives · CEACCESS · Snapshot Aug 25, 2026 06:53 PM
+  ADA Initiatives · CEACCESS · Snapshot Aug 25, 2026 06:55 PM
 </footer>
 
 </main>
@@ -184,7 +184,7 @@ const PLAT_COLORS = ['#0053e2','#ffc220','#2a8703','#ea1100','#7c3aed'];
 
 let filtered = [...ALL_GROUPED];
 let currentPage = 1;
-let pageSize = 20;
+let pageSize = 10;
 let sortKey = 'name';
 let sortDir = 'asc';
 
