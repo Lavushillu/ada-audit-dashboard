@@ -37,7 +37,7 @@
       <p class="text-xs text-gray-500">CEACCESS · Snapshot · A11y testers</p>
     </div>
   </div>
-  <span class="badge-export">📸 Snapshot: Aug 25, 2026 07:26 PM</span>
+  <span class="badge-export">📸 Snapshot: Aug 25, 2026 07:31 PM</span>
 </header>
 
 <div class="max-w-screen-2xl mx-auto px-4">
@@ -156,7 +156,7 @@
 </div>
 
 <footer class="text-center text-xs text-gray-600 pb-4">
-  ADA Initiatives · CEACCESS · Static snapshot exported Aug 25, 2026 07:26 PM
+  ADA Initiatives · CEACCESS · Static snapshot exported Aug 25, 2026 07:31 PM
 </footer>
 
 </div><!-- /max-w -->
@@ -365,8 +365,12 @@ function render() {
     const epicCell = g.epic
       ? `<a href="${JIRA_URL}/browse/${g.epic}" target="_blank" class="font-mono text-xs text-blue-600 hover:underline">${g.epic}</a>`
       : '<span class="text-gray-300">—</span>';
+    const firstKey = g.issues[0]?.key || '';
+    const bugSearchUrl = `${JIRA_URL}/issues/?jql=issueFunction+in+linkedIssuesOf("key+%3D+${firstKey}","Bug")+ORDER+BY+created+DESC`;
     const bugCell = g.bug_count
-      ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:#fef3c7;color:#d97706">🐛 ${g.bug_count}</span>`
+      ? `<a href="${JIRA_URL}/browse/${firstKey}" target="_blank" onclick="event.stopPropagation()"
+           class="text-xs font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80"
+           style="background:#fef3c7;color:#d97706;text-decoration:none">🐛 ${g.bug_count}</a>`
       : '<span class="text-gray-300 text-xs">—</span>';
 
     const mainRow = `<tr class="${expandable?'cursor-pointer hover:bg-blue-50':''}"
@@ -395,7 +399,9 @@ function render() {
         const plat = getPlatform(i.summary);
         const chip = STATUS_CHIP[i.status]||'chip-backlog';
         const ibug = i.bug_count
-          ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:#fef3c7;color:#d97706">🐛 ${i.bug_count}</span>`
+          ? `<a href="${JIRA_URL}/browse/${i.key}" target="_blank" onclick="event.stopPropagation()"
+               class="text-xs font-bold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80"
+               style="background:#fef3c7;color:#d97706;text-decoration:none">🐛 ${i.bug_count}</a>`
           : '<span style="color:#d1d5db;font-size:.75rem">—</span>';
         return `<tr style="border-bottom:1px solid #e0e7ff">
           <td style="padding:.45rem .75rem"><span class="chip chip-platform" style="font-size:.68rem">${plat}</span></td>
