@@ -594,3 +594,28 @@ async def force_refresh(request: Request):
     return RedirectResponse("/api/issues?force=true", status_code=303)
 
 
+@app.get("/api/data.json")
+async def export_data():
+    """Return all issues as JSON for static export."""
+    client = get_client()
+    settings = load_settings()
+    jql = make_jql(settings)
+    try:
+        all_issues = client.search(jql)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    grouped = group_issues(all_issues)
+    agg = aggregate(all_issues)
+    testers = settings.get("testers", [])
+    tester_names = {t: get_tester_display_name(client, t) for t in testers}
+    return JSONResponse({
+        "issues": all_issues,
+        "grouped": grouped,
+        "agg": agg,
+        "settings": settings,
+        "tester_names": tester_names,
+        "jira_url": settings["jira_url"],
+        "exported_at": __import__("datetime").datetime.now().isoformat(),
+    })
+
+

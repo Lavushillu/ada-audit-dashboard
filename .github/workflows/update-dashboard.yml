@@ -1,0 +1,46 @@
+name: Update ADA Dashboard
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # Every 4 hours
+  workflow_dispatch:         # Manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet fastapi uvicorn httpx jinja2 python-dotenv python-multipart annotated-types
+
+      - name: Create .env from secrets
+        run: |
+          echo "JIRA_URL=${{ secrets.JIRA_URL }}" >> .env
+          echo "JIRA_USERNAME=${{ secrets.JIRA_USERNAME }}" >> .env
+          echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> .env
+
+      - name: Build static dashboard
+        run: python3 build_static.py
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: .
+          include_files: index.html
+          commit_message: "Auto-update dashboard [skip ci]"
